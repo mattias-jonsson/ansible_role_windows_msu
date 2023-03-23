@@ -1,7 +1,5 @@
 ---
 
-
-
 - name: Set KB number as a fact for {{ item.name }}.
   ansible.builtin.set_fact:
     mskb_num: "{{ item.url | regex_search('https://catalog.[a-z].download.windowsupdate.com/[a-z]/msdownload/update/software/secu/[0-9]+\\/[0-9]+\\/windows[0-9.]+-kb([0-9]+)-x64_([a-z0-9]+).msu', '\\1') | join }}"
