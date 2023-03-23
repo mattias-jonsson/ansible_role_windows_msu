@@ -1,7 +1,7 @@
 Ansible Role: ansible_role_windows_msu
 =========
 
-Installs/Uninstalls Microsoft Update Standalone Packages from a list of URLs.
+Installs/Uninstalls Microsoft Update Standalone Packages from a list Microsoft Update Catalog URLs.
 
 <ul>
 <li>Windows Server
