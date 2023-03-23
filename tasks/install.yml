@@ -1,0 +1,51 @@
+---
+
+
+
+- name: Set KB number as a fact for {{ item.name }}.
+  ansible.builtin.set_fact:
+    mskb_num: "{{ item.url | regex_search('https://catalog.[a-z].download.windowsupdate.com/[a-z]/msdownload/update/software/secu/[0-9]+\\/[0-9]+\\/windows[0-9.]+-kb([0-9]+)-x64_([a-z0-9]+).msu', '\\1') | join }}"
+
+
+- name: Block for download of MSU package.
+  when: item.state | lower == 'present'
+  block:
+    - name: Create temporary file for KB{{ mskb_num }} download.
+      ansible.windows.win_tempfile:
+        state: file
+        suffix: msu
+      register: cumulative_update_tempfile
+
+    - name: Set shasum for KB{{ mskb_num }} as a fact.
+      ansible.builtin.set_fact:
+        cu_shasum: "{{ item.url | regex_search('https://catalog.[a-z].download.windowsupdate.com/[a-z]/msdownload/update/software/secu/[0-9]+\\/[0-9]+\\/windows[0-9.]+-kb([0-9]+)-x64_([a-z0-9]+).msu', '\\2') | join }}"
+
+    - name: Download KB{{ mskb_num }} MSU package.
+      ansible.windows.win_get_url:
+        url: '{{ item.url }}'
+        dest: '{{ cumulative_update_tempfile.path }}'
+        timeout: 300
+        checksum: "{{ cu_shasum }}"
+        checksum_algorithm: sha1
+      retries: 10
+      delay: 10
+
+
+- name: "{{ 'Installs' if item.state | lower == 'present' else 'Uninstalls'}} hotfix KB{{ mskb_num }} package."
+  community.windows.win_hotfix:
+    hotfix_kb: KB{{ mskb_num }}
+    source: "{{ cumulative_update_tempfile.path if item.state | lower == 'present' else omit }}"
+    state: '{{ item.state | lower }}'
+  register: hotfix_install
+
+- name: Reboot after KB{{ mskb_num }} {{ 'installation' if item.state | lower == 'present' else uUninstall'}}.
+  ansible.windows.win_reboot:
+    pre_reboot_delay: 120
+    post_reboot_delay: 120
+  when: hotfix_install.reboot_required
+
+- name: Remove the temporary update file for KB{{ mskb_num }}.
+  ansible.windows.win_file:
+    path: '{{ cumulative_update_tempfile.path }}'
+    state: absent
+  when: item.state == 'present'
