@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ 'Installs' if item.state | lower == 'present' else 'Uninstalls'}} MSU listed in ansible_role_windows_msu_updates variable."
+- name: "{{ 'Installs' if item.state | lower == 'present' else 'Uninstalls' }} MSU listed in ansible_role_windows_msu_updates variable."
   ansible.builtin.include_tasks:
     file: install.yml
   loop: "{{ ansible_role_windows_msu_updates }}"

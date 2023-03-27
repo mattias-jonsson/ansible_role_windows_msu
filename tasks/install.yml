@@ -29,14 +29,14 @@
       delay: 10
 
 
-- name: "{{ 'Installs' if item.state | lower == 'present' else 'Uninstalls'}} hotfix KB{{ mskb_num }} package."
+- name: "{{ 'Installs' if item.state | lower == 'present' else 'Uninstalls' }} hotfix KB{{ mskb_num }} package."
   community.windows.win_hotfix:
     hotfix_kb: KB{{ mskb_num }}
     source: "{{ cumulative_update_tempfile.path if item.state | lower == 'present' else omit }}"
     state: '{{ item.state | lower }}'
   register: hotfix_install
 
-- name: Reboot after KB{{ mskb_num }} {{ 'installation' if item.state | lower == 'present' else uninstall'}}.
+- name: Reboot after KB{{ mskb_num }} {{ 'installation' if item.state | lower == 'present' else 'uninstall' }}
   ansible.windows.win_reboot:
     pre_reboot_delay: 120
     post_reboot_delay: 120
